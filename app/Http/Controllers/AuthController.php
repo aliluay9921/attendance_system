@@ -152,4 +152,10 @@ class AuthController extends Controller
         $user->delete();
         return $this->send_response(200, 'تم حذف المستخدم بنجاح', [], []);
     }
+
+    public function infoUser()
+    {
+
+        return $this->send_response(200, "تم جلب معلومات المستخدم بنجاح", [], User::find(auth()->user()->id));
+    }
 }

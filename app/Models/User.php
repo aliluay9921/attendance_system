@@ -50,7 +50,7 @@ class User extends Authenticatable
     }
     public function getRivalAttribute()
     {
-        $count =  Absent::whereBetween("date", [Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth()])->where("user_id", $this->id)->count();
+        $count =  Absent::whereBetween("date", [Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth()])->where("user_id", $this->id)->where("status", 0)->count();
         $role = Role::where("role", "الغياب")->first();
 
         return  $role->value * $count;

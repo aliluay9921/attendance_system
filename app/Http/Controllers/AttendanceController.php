@@ -108,6 +108,26 @@ class AttendanceController extends Controller
         }
         return  $this->send_response(200, "تم تسجيل الغياب بنجاح", [], []);
     }
+    public function addReward(Request $request)
+    {
+        $request = $request->json()->all();
+        $validator = Validator::make($request, [
+            "user_id" => "required|exists:users,id",
+        ], [
+            "user_id.required" => "يجب ادخال المستخدم",
+            "user_id.exists" => "المستخدم الذي قمت بأستخدامه غير متوفر ",
+        ]);
+        if ($validator->fails()) {
+            return $this->send_response(401, 'خطأ بالمدخلات', $validator->errors(), []);
+        }
+        $user = User::find($request["user_id"]);
+        Absent::create([
+            "user_id" => $user->id,
+            "status" => 2,
+            "date" => Carbon::now()->format("Y-m-d")
+        ]);
+        return $this->send_response(200, "تم أضافة مكافئة الى المستخدم", [], User::find($request["user_id"]));
+    }
 
     public function changeStatusAbsent(Request $request)
     {
@@ -125,8 +145,7 @@ class AttendanceController extends Controller
 
     public function getAbsents()
     {
-
-        $absents = Absent::with("user")->where("date", Carbon::now()->format("Y-m-d"));
+        $absents = Absent::with("user");
         if (isset($_GET['query'])) {
             $absents->where(function ($q) {
                 $columns = Schema::getColumnListing('absents');
@@ -135,15 +154,13 @@ class AttendanceController extends Controller
                 }
             });
         }
-
         if (isset($_GET['filter'])) {
             $filter = json_decode($_GET['filter']);
             $absents->where($filter->name, $filter->value);
         }
-
         if (isset($_GET)) {
             foreach ($_GET as $key => $value) {
-                if ($key == 'skip' || $key == 'limit' || $key == 'query') {
+                if ($key == 'skip' || $key == 'limit' || $key == 'query' || $key == 'filter') {
                     continue;
                 } else {
                     $sort = $value == 'true' ? 'desc' : 'asc';
@@ -161,7 +178,7 @@ class AttendanceController extends Controller
 
     public function getAttendaces()
     {
-        $attendances = Attendance::with("user")->where("date", Carbon::now()->format("Y-m-d"));
+        $attendances = Attendance::with("user");
         if (isset($_GET['query'])) {
             $attendances->where(function ($q) {
                 $columns = Schema::getColumnListing('attendances');
@@ -170,22 +187,13 @@ class AttendanceController extends Controller
                 }
             });
         }
-        // if (isset($_GET['filter'])) {
-        //     $filter = json_decode($_GET['filter']);
-        //     $attendances->where($filter->name, $filter->value);
-        // }
-
-        if (isset($_GET['filter_date'])) {
-
-            if ($_GET["filter_date"] != "" || $_GET["filter_date"] != null) {
-
-                $attendances->where('date', $_GET['filter_date']);
-            }
+        if (isset($_GET['filter'])) {
+            $filter = json_decode($_GET['filter']);
+            $attendances->where($filter->name, $filter->value);
         }
-
         if (isset($_GET)) {
             foreach ($_GET as $key => $value) {
-                if ($key == 'skip' || $key == 'limit' || $key == 'query') {
+                if ($key == 'skip' || $key == 'limit' || $key == 'query' || $key == 'filter') {
                     continue;
                 } else {
                     $sort = $value == 'true' ? 'desc' : 'asc';
