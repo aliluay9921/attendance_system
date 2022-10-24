@@ -23,6 +23,10 @@ use Illuminate\Support\Facades\Route;
 //     return $request->user();
 // });
 
+Route::get('test', function (){
+    return "api work";
+});
+
 Route::post("login", [AuthController::class, "login"]);
 
 Route::middleware('auth:api')->group(function () {
@@ -47,6 +51,7 @@ Route::middleware('auth:api')->group(function () {
     });
 
     Route::post("send_attendance", [AttendanceController::class, "sendAttendance"]);
-
+    Route::post("add_holiday", [AttendanceController::class, "add_holiday"]);
+    Route::get('get_holiday', [AttendanceController::class, "get_holiday"]);
     Route::put("send_leaving", [AttendanceController::class, "sendLeaving"]);
 });

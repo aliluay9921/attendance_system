@@ -52,7 +52,9 @@ class User extends Authenticatable
     {
         $count =  Absent::whereBetween("date", [Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth()])->where("user_id", $this->id)->where("status", 0)->count();
         $role = Role::where("role", "الغياب")->first();
+        if(isset($role)){
+            return  $role->value * $count;
+        }
 
-        return  $role->value * $count;
     }
 }
