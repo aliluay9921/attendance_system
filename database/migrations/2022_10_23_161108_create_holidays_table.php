@@ -19,8 +19,8 @@ return new class extends Migration
             $table->string("body")->nullable();
             $table->date('from_day')->nullable();
             $table->date('to_day')->nullable();
-            $table->date('from_hour')->nullable();
-            $table->date('to_hour')->nullable();
+            $table->time('from_hour')->nullable();
+            $table->time('to_hour')->nullable();
             $table->uuid("user_id");
             $table->timestamps();
         });
