@@ -17,10 +17,10 @@ return new class extends Migration
             $table->uuid("id")->primary();
             $table->string("title");
             $table->string("body")->nullable();
-            $table->string('from_day')->nullable();
-            $table->string('to_day')->nullable();
-            $table->string('from_hour')->nullable();
-            $table->string('to_hour')->nullable();
+            $table->date('from_day')->nullable();
+            $table->date('to_day')->nullable();
+            $table->date('from_hour')->nullable();
+            $table->date('to_hour')->nullable();
             $table->uuid("user_id");
             $table->timestamps();
         });

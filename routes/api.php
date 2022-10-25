@@ -23,7 +23,7 @@ use Illuminate\Support\Facades\Route;
 //     return $request->user();
 // });
 
-Route::get('test', function (){
+Route::get('test', function () {
     return "api work";
 });
 
@@ -36,7 +36,6 @@ Route::middleware('auth:api')->group(function () {
         Route::get("get_roles", [RoleController::class, "getRoles"]);
         Route::get("get_absents", [AttendanceController::class, "getAbsents"]);
         Route::get("get_attendances", [AttendanceController::class, "getAttendaces"]);
-        Route::get("info_user", [AuthController::class, "infoUser"]);
 
         Route::post("add_user", [AuthController::class, "addUser"]);
         Route::post("add_role", [RoleController::class, "addRole"]);
@@ -50,8 +49,10 @@ Route::middleware('auth:api')->group(function () {
         Route::delete("delete_user", [AuthController::class, "deleteUser"]);
     });
 
+    Route::get("info_user", [AuthController::class, "infoUser"]);
+    Route::get('get_holiday', [AttendanceController::class, "get_holiday"]);
+
     Route::post("send_attendance", [AttendanceController::class, "sendAttendance"]);
     Route::post("add_holiday", [AttendanceController::class, "add_holiday"]);
-    Route::get('get_holiday', [AttendanceController::class, "get_holiday"]);
     Route::put("send_leaving", [AttendanceController::class, "sendLeaving"]);
 });
