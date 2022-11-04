@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Bonus;
+use App\Models\Shift;
 use App\Models\User;
 use App\Traits\Pagination;
 use App\Traits\SendResponse;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
@@ -47,6 +50,7 @@ class AuthController extends Controller
             "salary" => "required",
             "start_attendance" => "required",
             "leave_attendance" => "required",
+
         ], [
             'user_name.required' => ' يرجى ادخال اسم المستخدم ',
             'password.required' => 'يرجى ادخال كلمة المرور ',
@@ -132,6 +136,7 @@ class AuthController extends Controller
             "salary" => $request['salary'],
             "start_attendance" =>  $request['start_attendance'],
             "leave_attendance" =>  $request['leave_attendance'],
+
         ];
         $user->update($data);
         return $this->send_response(200, 'تم تعديل معلومات المستخدم بنجاح', [], User::find($user->id));
@@ -157,5 +162,58 @@ class AuthController extends Controller
     {
 
         return $this->send_response(200, "تم جلب معلومات المستخدم بنجاح", [], User::find(auth()->user()->id));
+    }
+    public function addBonus(Request $request)
+    {
+        $request = $request->json()->all();
+        $validator = Validator::make($request, [
+            "user_id" => "required|exists:users,id",
+            "bonus" => "required",
+            "type" => "required"
+        ], [
+            "user_id.required" => "يجب ادخال المستخدم المراد مكافئته",
+            "user_id.exists" => "المستخدم الذي قمت بأدخاله غير متوفر ",
+            "bonus.required" => "يرجى ادخال قيمة المكافئة",
+            "type.required" => "يرجى اختيار نوع المكافئة"
+        ]);
+        if ($validator->fails()) {
+            return $this->send_response(401, 'خطأ بالمدخلات', $validator->errors(), []);
+        }
+        $data = [];
+        $data = [
+            "user_id" => $request["user_id"],
+            "bonus" => $request["bonus"],
+            "type" => $request["type"],
+            "date" => Carbon::now()->format("Y-m-d"),
+        ];
+
+        $bonus = Bonus::create($data);
+        return $this->send_response(200, 'تم اضافة مكافئة بنجاح', [], User::find($bonus->user_id));
+    }
+
+    public function addShift(Request $request)
+    {
+        $request = $request->json()->all();
+        $validator = Validator::make($request, [
+            "user_id" => "required|exists:users,id",
+            "start_time" => "required",
+            "end_time" => "required",
+        ]);
+        if ($validator->fails()) {
+            return $this->send_response(401, 'خطأ بالمدخلات', $validator->errors(), []);
+        }
+
+        $data = [];
+        $data = [
+            "user_id" => $request["user_id"],
+            "start_time" => $request["start_time"],
+            "end_time" => $request["end_time"],
+        ];
+        $get_shift = Shift::where("user_id", $request["user_id"])->count();
+
+        $data["shift"] = $get_shift += 1;
+        // return $data;
+        $shift = Shift::create($data);
+        return $this->send_response(200, "تم أضافة الشفت بنجاح", [], User::find($request["user_id"]));
     }
 }

@@ -23,6 +23,7 @@ return new class extends Migration
             $table->string("start_attendance")->nullable();
             $table->string("leave_attendance")->nullable();
             $table->double("reward")->nullable()->default(0);
+
             $table->softDeletes();
             $table->rememberToken();
             $table->timestamps();

@@ -2,23 +2,27 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Holiday;
 use Carbon\Carbon;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\Absent;
+use App\Models\Holiday;
 use App\Models\Attendance;
+use App\Models\Shift;
+use App\Traits\checkTime;
 use App\Traits\Pagination;
 use App\Traits\SendResponse;
+use Attribute;
 use Illuminate\Http\Request;
 use function PHPSTORM_META\type;
 
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
+use Symfony\Component\Console\Input\Input;
 
 class AttendanceController extends Controller
 {
-    use SendResponse, Pagination;
+    use SendResponse, Pagination, checkTime;
 
     public function sendAttendance(Request $request)
     {
@@ -41,14 +45,17 @@ class AttendanceController extends Controller
             "lat_tude" => $request["lat_tude"],
             "status" => 0,
             "date" => Carbon::now()->format("Y-m-d")
-
         ];
-
-        // save attendance time when send request time
-        $attendance_time = Carbon::now()->addHours(3)->format("g:i A");
+        $get_attendance_in_day = Attendance::where("user_id", auth()->user()->id)->where("date", Carbon::now()->format("Y-m-d"))->first();
+        if (!$get_attendance_in_day) {
+            $shift = Shift::where("user_id", auth()->user()->id)->where("shift", 1)->first();
+        } else {
+            $shift = Shift::where("user_id", auth()->user()->id)->where("shift", 2)->first();
+        }
+        // $shift = Shift::where("user_id", auth()->user()->id)->count();
+        $attendance_time = Carbon::now()->addHours(3)->format("h:i:s");
+        $data["num_clock"] = $this->check2($attendance_time, $shift->start_time, 0);
         $data["attendance_time"] = $attendance_time;
-
-
         $attendance = Attendance::create($data);
         return $this->send_response(200, 'تم تسجيل الحضور بنجاح', [], $attendance);
     }
@@ -65,6 +72,16 @@ class AttendanceController extends Controller
         if ($validator->fails()) {
             return $this->send_response(401, 'خطأ بالمدخلات', $validator->errors(), []);
         }
+        $attendance = Attendance::find($request["attendance_id"]);
+        $attendance_count = Attendance::where("user_id", auth()->user()->id)->where("date", Carbon::now()->format("Y-m-d"))->count();
+        if ($attendance_count == 1) {
+            $shift = Shift::where("user_id", auth()->user()->id)->where("shift", 1)->first();
+        } else {
+            $shift = Shift::where("user_id", auth()->user()->id)->where("shift", 2)->first();
+        }
+        if (auth()->user()->id != $attendance->user_id) {
+            return $this->send_response(400, 'لايمكنك تسجيل الانصراف لمستخدم غيرك', [], []);
+        }
         $data = [];
         $data = [
             "user_id" => auth()->user()->id,
@@ -75,11 +92,10 @@ class AttendanceController extends Controller
             "status" => 0
         ];
         // save attendance time when send request time
-        $leaving_time = Carbon::now()->addHours(3)->format("g:i A");
+        $leaving_time = Carbon::now()->addHours(3)->format("h:i:s");
         $data["leaving_time"] = $leaving_time;
-
-
-        $attendance = Attendance::find($request["attendance_id"]);
+        // return $this->check2($leaving_time, auth()->user()->leave_attendance, 1);
+        $attendance->num_clock += $this->check2($leaving_time, $shift->end_time, 1);
         $attendance->update($data);
         return $this->send_response(200, 'تم تسجيل الانصراف  بنجاح', [], $attendance);
     }
@@ -109,26 +125,7 @@ class AttendanceController extends Controller
         }
         return  $this->send_response(200, "تم تسجيل الغياب بنجاح", [], []);
     }
-    public function addReward(Request $request)
-    {
-        $request = $request->json()->all();
-        $validator = Validator::make($request, [
-            "user_id" => "required|exists:users,id",
-        ], [
-            "user_id.required" => "يجب ادخال المستخدم",
-            "user_id.exists" => "المستخدم الذي قمت بأستخدامه غير متوفر ",
-        ]);
-        if ($validator->fails()) {
-            return $this->send_response(401, 'خطأ بالمدخلات', $validator->errors(), []);
-        }
-        $user = User::find($request["user_id"]);
-        Absent::create([
-            "user_id" => $user->id,
-            "status" => 2,
-            "date" => Carbon::now()->format("Y-m-d")
-        ]);
-        return $this->send_response(200, "تم أضافة مكافئة الى المستخدم", [], User::find($request["user_id"]));
-    }
+
 
     public function changeStatusAbsent(Request $request)
     {
@@ -209,7 +206,8 @@ class AttendanceController extends Controller
         $res = $this->paging($attendances->orderBy("created_at", "desc"),  $_GET['skip'],  $_GET['limit']);
         return $this->send_response(200, 'تم جلب جدول الحضور', [], $res["model"], null, $res["count"]);
     }
-    public function add_holiday(Request $request){
+    public function add_holiday(Request $request)
+    {
 
 
         $request = $request->json()->all();
@@ -218,6 +216,10 @@ class AttendanceController extends Controller
         ]);
         if ($validator->fails()) {
             return $this->send_response(401, 'خطأ بالمدخلات', $validator->errors(), []);
+        }
+        $check = Holiday::whereBetween("from_day", [Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth()])->where("user_id", auth()->user()->id)->count();
+        if ($check >= 4) {
+            return $this->send_response(400, "لايمكنك طلب اجازة اكثر من 4 مرات في الشهر", [], []);
         }
         $data = [
             "user_id" => auth()->user()->id,
@@ -231,7 +233,8 @@ class AttendanceController extends Controller
         $holiday = Holiday::create($data);
         return  $this->send_response(200, "تم تسجيل الغياب بنجاح", [], $holiday);
     }
-    public function get_holiday(){
+    public function get_holiday()
+    {
         $holiday = Holiday::with("user");
         if (isset($_GET['query'])) {
             $holiday->where(function ($q) {

@@ -24,6 +24,7 @@ return new class extends Migration
             $table->string("ip_mobile");
             $table->string("lang_tude");
             $table->string("lat_tude");
+            $table->double("num_clock")->default(0);
             $table->string("over_time")->nullable();
             $table->date("date");
             $table->text("note")->nullable();

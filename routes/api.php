@@ -38,9 +38,10 @@ Route::middleware('auth:api')->group(function () {
         Route::get("get_attendances", [AttendanceController::class, "getAttendaces"]);
 
         Route::post("add_user", [AuthController::class, "addUser"]);
+        Route::post("add_shift", [AuthController::class, "addShift"]);
         Route::post("add_role", [RoleController::class, "addRole"]);
         Route::post("add_absents", [AttendanceController::class, "addAbsents"]);
-        Route::post("add_reward", [AttendanceController::class, "addReward"]);
+        Route::post("add_bonus", [AuthController::class, "addBonus"]);
 
         Route::put("change_status_absent", [AttendanceController::class, "changeStatusAbsent"]);
         Route::put("update_user", [AuthController::class, "updateUser"]);
@@ -48,7 +49,6 @@ Route::middleware('auth:api')->group(function () {
 
         Route::delete("delete_user", [AuthController::class, "deleteUser"]);
     });
-
     Route::get("info_user", [AuthController::class, "infoUser"]);
     Route::get('get_holiday', [AttendanceController::class, "get_holiday"]);
 
