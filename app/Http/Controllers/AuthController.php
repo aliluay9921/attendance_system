@@ -48,15 +48,15 @@ class AuthController extends Controller
             "full_name" => 'required',
             "password" => 'required',
             "salary" => "required",
-            "start_attendance" => "required",
-            "leave_attendance" => "required",
+            // "start_attendance" => "required",
+            // "leave_attendance" => "required",
 
         ], [
             'user_name.required' => ' يرجى ادخال اسم المستخدم ',
             'password.required' => 'يرجى ادخال كلمة المرور ',
             'salary.required' => 'يرجى ادخال كلمة المرور ',
-            'start_attendance.required' => 'يرجى ادخال كلمة المرور ',
-            'leave_attendance.required' => 'يرجى ادخال كلمة المرور ',
+            // 'start_attendance.required' => 'يرجى ادخال كلمة المرور ',
+            // 'leave_attendance.required' => 'يرجى ادخال كلمة المرور ',
         ]);
         if ($validator->fails()) {
             return $this->send_response(400, 'حصل خطأ في الأدخال', $validator->errors(), []);
@@ -68,8 +68,8 @@ class AuthController extends Controller
             "password" => bcrypt($request['password']),
             "user_type" => 1,
             "salary" => $request['salary'],
-            "start_attendance" =>  $request['start_attendance'],
-            "leave_attendance" =>  $request['leave_attendance'],
+            // "start_attendance" =>  $request['start_attendance'],
+            // "leave_attendance" =>  $request['leave_attendance'],
         ];
 
         $user = User::create($data);
@@ -115,15 +115,15 @@ class AuthController extends Controller
             "user_name" => 'required|unique:users,user_name,' . $user->id,
             "full_name" => 'required',
             "salary" => "required",
-            "start_attendance" => "required",
-            "leave_attendance" => "required",
+            // "start_attendance" => "required",
+            // "leave_attendance" => "required",
         ], [
             'user_id.required' => 'يجب ادخال  العنصر المراد التعديل عليه',
             'user_id.exists' => 'العنصر الذي قمت بأدخاله غير موجود',
             'user_name.required' => ' يرجى ادخال اسم المستخدم ',
             'salary.required' => 'يرجى ادخال كلمةألمرتب الخاص بالموضف  ',
-            'start_attendance.required' => 'يرجى ادخال  وقت الحضور ',
-            'leave_attendance.required' => 'يرجى ادخال وقت الانصراف  ',
+            // 'start_attendance.required' => 'يرجى ادخال  وقت الحضور ',
+            // 'leave_attendance.required' => 'يرجى ادخال وقت الانصراف  ',
         ]);
         if ($validator->fails()) {
             return $this->send_response(401, 'خطأ بالمدخلات', $validator->errors(), []);
@@ -134,8 +134,8 @@ class AuthController extends Controller
             "user_name" => $request['user_name'],
             "full_name" => $request['full_name'],
             "salary" => $request['salary'],
-            "start_attendance" =>  $request['start_attendance'],
-            "leave_attendance" =>  $request['leave_attendance'],
+            // "start_attendance" =>  $request['start_attendance'],
+            // "leave_attendance" =>  $request['leave_attendance'],
 
         ];
         $user->update($data);

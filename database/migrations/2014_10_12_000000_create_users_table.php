@@ -20,8 +20,8 @@ return new class extends Migration
             $table->string('password');
             $table->integer("user_type"); // 0 admin  1 user
             $table->double("salary")->nullable();
-            $table->string("start_attendance")->nullable();
-            $table->string("leave_attendance")->nullable();
+            // $table->string("start_attendance")->nullable();
+            // $table->string("leave_attendance")->nullable();
             $table->double("reward")->nullable()->default(0);
 
             $table->softDeletes();

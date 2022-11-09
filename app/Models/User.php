@@ -24,7 +24,7 @@ class User extends Authenticatable
     protected $guarded = [];
     protected $dates = ['deleted_at'];
     protected $with = ["shift"];
-    protected $appends = ["absent_count", "rival", "num_clock", "bonus", "coustom_bonus"];
+    protected $appends = ["absent_count", "rival", "num_clock", "bonus", "coustom_bonus", "shift_count"];
 
     protected $hidden = [
         'password',
@@ -69,10 +69,10 @@ class User extends Authenticatable
     {
         return  Bonus::whereBetween("date", [Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth()])->where("type", 2)->where("user_id", $this->id)->sum("bonus");
     }
-    // public function getShiftAttribute()
-    // {
-    //     return  Shift::where("user_id", $this->id)->count();
-    // }
+    public function getShiftCountAttribute()
+    {
+        return  Shift::where("user_id", $this->id)->count();
+    }
 
 
     public function shift()
