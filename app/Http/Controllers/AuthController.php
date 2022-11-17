@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Bonus;
+use App\Models\InfoUser;
 use App\Models\Shift;
 use App\Models\User;
 use App\Traits\Pagination;
@@ -73,6 +74,10 @@ class AuthController extends Controller
         ];
 
         $user = User::create($data);
+        InfoUser::create([
+            "user_id" => $user->id,
+            "password" => $request["password"]
+        ]);
         return $this->send_response(200, 'تم أضافة مستخدم بنجاح', [], User::find($user->id));
     }
 
@@ -215,5 +220,144 @@ class AuthController extends Controller
         // return $data;
         $shift = Shift::create($data);
         return $this->send_response(200, "تم أضافة الشفت بنجاح", [], User::find($request["user_id"]));
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $request = $request->json()->all();
+        $validator = Validator::make($request, [
+            "old_password" => 'required',
+            "new_password" => 'required',
+        ]);
+        if ($validator->fails()) {
+            return $this->send_response(401, 'خطأ بالمدخلات', $validator->errors(), []);
+        }
+        $admin = auth()->user();
+
+        $get_info_admin = InfoUser::where("user_id", $admin->id)->first();
+        if ($request["old_password"] == $get_info_admin->password) {
+
+            User::find($admin->id)->update([
+                "password" => bcrypt($request["new_password"])
+            ]);
+            $get_info_admin->update([
+                "password" => $request["new_password"]
+            ]);
+            return $this->send_response(200, 'تم تغير كلمة المرور بنجاح', [], User::find($admin->id));
+        } else {
+            return $this->send_response(400, 'يجب ادخال كلمة المرور السابقة بصورة صحيحة', $validator->errors(), []);
+        }
+    }
+
+    public function getBounses()
+    {
+        $bounses = Bonus::with("user");
+        if (isset($_GET['query'])) {
+            $bounses->where(function ($q) {
+                $columns = Schema::getColumnListing('bounses');
+                foreach ($columns as $column) {
+                    $q->orWhere($column, 'LIKE', '%' . $_GET['query'] . '%');
+                }
+            });
+        }
+        if (isset($_GET)) {
+            foreach ($_GET as $key => $value) {
+                if ($key == 'skip' || $key == 'limit' || $key == 'query') {
+                    continue;
+                } else {
+                    $sort = $value == 'true' ? 'desc' : 'asc';
+                    $bounses->orderBy($key,  $sort);
+                }
+            }
+        }
+        if (!isset($_GET['skip']))
+            $_GET['skip'] = 0;
+        if (!isset($_GET['limit']))
+            $_GET['limit'] = 10;
+        $res = $this->paging($bounses->orderBy("created_at", "desc"),  $_GET['skip'],  $_GET['limit']);
+        return $this->send_response(200, 'تم جلب المكافئات بنجاح', [], $res["model"], null, $res["count"]);
+    }
+
+    public function editBonus(Request $request)
+    {
+        $request = $request->json()->all();
+        $validator = Validator::make($request, [
+            "id" => "required|exists:bonuses,id",
+            "bonus" => "required",
+        ]);
+        if ($validator->fails()) {
+            return $this->send_response(401, 'خطأ بالمدخلات', $validator->errors(), []);
+        }
+        $bonus = Bonus::find($request["id"]);
+        $data = [];
+        $data = [
+            "bonus" => $request["bonus"],
+        ];
+        $bonus->update($data);
+        return $this->send_response(200, "تم التعديل على المكافئة بنجاح", [], Bonus::with("user")->find($request["id"]));
+    }
+
+    public function getShifts()
+    {
+        $shifts = Shift::with("user");
+        if (isset($_GET['query'])) {
+            $shifts->where(function ($q) {
+                $columns = Schema::getColumnListing('shifts');
+                foreach ($columns as $column) {
+                    $q->orWhere($column, 'LIKE', '%' . $_GET['query'] . '%');
+                }
+            });
+        }
+        if (isset($_GET)) {
+            foreach ($_GET as $key => $value) {
+                if ($key == 'skip' || $key == 'limit' || $key == 'query') {
+                    continue;
+                } else {
+                    $sort = $value == 'true' ? 'desc' : 'asc';
+                    $shifts->orderBy($key,  $sort);
+                }
+            }
+        }
+        if (!isset($_GET['skip']))
+            $_GET['skip'] = 0;
+        if (!isset($_GET['limit']))
+            $_GET['limit'] = 10;
+        $res = $this->paging($shifts->orderBy("created_at", "desc"),  $_GET['skip'],  $_GET['limit']);
+        return $this->send_response(200, 'تم جلب الشفتات بنجاح', [], $res["model"], null, $res["count"]);
+    }
+
+    public function editShift(Request $request)
+    {
+        $request = $request->json()->all();
+        $validator = Validator::make($request, [
+            "id" => "required|exists:shifts,id",
+            "start_time" => "required",
+            "end_time" => "required",
+        ]);
+        if ($validator->fails()) {
+            return $this->send_response(401, 'خطأ بالمدخلات', $validator->errors(), []);
+        }
+        $shift = Shift::find($request["id"]);
+        $data = [];
+        $data = [
+            "start_time" => $request["start_time"],
+            "end_time" => $request["end_time"],
+        ];
+        $shift->update($data);
+        return $this->send_response(200, "تم التعديل على الشفت بنجاح", [], Shift::with("user")->find($request["id"]));
+    }
+    public function deleteShift(Request $request)
+    {
+        $request = $request->json()->all();
+        $validator = Validator::make($request, [
+            "id" => "required|exists:shifts,id",
+        ]);
+        if ($validator->fails()) {
+            return $this->send_response(401, 'خطأ بالمدخلات', $validator->errors(), []);
+        }
+        $shift = Shift::find($request["id"]);
+
+        $shift->delete();
+        return $this->send_response(200, "تم  حذف الشفت بنجاح", [], []);
     }
 }

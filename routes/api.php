@@ -6,6 +6,7 @@ use App\Http\Controllers\RoleController;
 use App\Models\Attendance;
 use Illuminate\Auth\Events\Attempting;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -36,6 +37,8 @@ Route::middleware('auth:api')->group(function () {
         Route::get("get_roles", [RoleController::class, "getRoles"]);
         Route::get("get_absents", [AttendanceController::class, "getAbsents"]);
         Route::get("get_attendances", [AttendanceController::class, "getAttendaces"]);
+        Route::get("get_bounses", [AuthController::class, "getBounses"]);
+        Route::get("get_shifts", [AuthController::class, "getShifts"]);
 
         Route::post("add_user", [AuthController::class, "addUser"]);
         Route::post("add_shift", [AuthController::class, "addShift"]);
@@ -46,8 +49,12 @@ Route::middleware('auth:api')->group(function () {
         Route::put("change_status_absent", [AttendanceController::class, "changeStatusAbsent"]);
         Route::put("update_user", [AuthController::class, "updateUser"]);
         Route::put("update_role", [RoleController::class, "updateRole"]);
+        Route::put("reset_password", [AuthController::class, "resetPassword"]);
+        Route::put("edit_bonus", [AuthController::class, "editBonus"]);
+        Route::put("edit_shift", [AuthController::class, "editShift"]);
 
         Route::delete("delete_user", [AuthController::class, "deleteUser"]);
+        Route::delete("delete_shift", [AuthController::class, "deleteShift"]);
     });
     Route::get("info_user", [AuthController::class, "infoUser"]);
     Route::get('get_holiday', [AttendanceController::class, "get_holiday"]);

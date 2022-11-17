@@ -56,6 +56,7 @@ class AttendanceController extends Controller
         $attendance_time = Carbon::now()->addHours(3)->format("h:i:s");
         $data["num_clock"] = $this->check2($attendance_time, $shift->start_time, 0);
         $data["attendance_time"] = $attendance_time;
+        return $data;
         $attendance = Attendance::create($data);
         return $this->send_response(200, 'تم تسجيل الحضور بنجاح', [], $attendance);
     }

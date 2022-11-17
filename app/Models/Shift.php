@@ -10,4 +10,8 @@ class Shift extends Model
 {
     use HasFactory, Uuids;
     protected $guarded = [];
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
 }

@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Passport\HasApiTokens;
+use Symfony\Polyfill\Intl\Idn\Info;
 
 class User extends Authenticatable
 {
@@ -78,5 +79,9 @@ class User extends Authenticatable
     public function shift()
     {
         return $this->hasMany(Shift::class, 'user_id');
+    }
+    public function user_info()
+    {
+        return $this->hasMany(InfoUser::class, 'user_id');
     }
 }

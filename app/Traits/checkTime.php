@@ -4,6 +4,7 @@ namespace App\Traits;
 
 trait checkTime
 {
+    use SendResponse;
     public function check($attendance_request, $attendance_required)
     {
         // $attendance_required = '08:00:00';
@@ -14,9 +15,9 @@ trait checkTime
         $minutes1 = ($array1[0] * 60.0 + $array1[1]);
         $minutes2 = ($array2[0] * 60.0 + $array2[1]);
         return  $minutes1 / 60.0;
-        if ($minutes1 < $minutes2) {
-            return "لايمكنك تسجيل الدخول قبل وقت الدوام";
-        }
+        // if ($minutes1 < $minutes2) {
+        //     return $this->send_response(400, "لايمكنك تسجيل الدخول قبل وقت الدوام", [], []);
+        // }
         $diff = $minutes1 - $minutes2;
         return $diff / 60;
     }
@@ -26,11 +27,11 @@ trait checkTime
         $time2 = strtotime($attendance_request);  //07:10:40  07:23:27
         // حضور
         if ($type == 0) {
-            if (
-                $time1 > $time2
-            ) {
-                return "لايمكنك تسجيل الدخول قبل وقت الدوام";
-            }
+            // if (
+            //     $time1 > $time2
+            // ) {
+            //     return $this->send_response(400, "لايمكنك تسجيل الدخول قبل وقت الدوام", [], []);
+            // }
             $difference = round(abs($time2 - $time1) / 3600, 1);
             return $difference;
         } else {
